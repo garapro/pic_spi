@@ -87,38 +87,101 @@ PIC_SPI_DATA pic_spiData;
 /* TODO:  Add any necessary callback functions.
 */
 /*** ADD ***/
+// 書き込みタイマータイムアウト
 void callbackTimerWrite( uintptr_t context, uint32_t currTick )
 {
     pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_WRITE;
     return;
 }
 
+// 読み込みタイマータイムアウト
 void callbackTimerRead( uintptr_t context, uint32_t currTick )
 {
     pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READ;
     return;
 }
 
+// SPI Master 書き込み完了
 void callbackSpiWriteMaster( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE bufferHandle, void * context )
 {
-    pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READTIMER;
+    switch(event)
+    {
+        case DRV_SPI_BUFFER_EVENT_COMPLETE:
+        {
+            // 書き込み完了
+            pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READTIMER;
+            break;
+        }
+        case DRV_SPI_BUFFER_EVENT_ERROR:
+        {
+            pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_WRITE;
+            break;
+        }
+    }
+    
     return;
 }
 
+// SPI Master 読み込み完了
 void callbackSpiReadMaster( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE bufferHandle, void * context )
 {
-    pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_FINISH;
+    switch(event)
+    {
+        case DRV_SPI_BUFFER_EVENT_COMPLETE:
+        {
+            // 読み込み完了
+            pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_FINISH;
+            break;
+        }
+        case DRV_SPI_BUFFER_EVENT_ERROR:
+        {
+            pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READ;
+            break;
+        }
+    }
+    
     return;
 }
 
+// SPI Slave 書き込み完了
 void callbackSpiWriteSlave( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE bufferHandle, void * context )
 {
-    pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_FINISH;
+    switch(event)
+    {
+        case DRV_SPI_BUFFER_EVENT_COMPLETE:
+        {
+            // 書き込み完了
+            pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_FINISH;
+            break;
+        }
+        case DRV_SPI_BUFFER_EVENT_ERROR:
+        {
+            pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_WRITE;
+            break;
+        }
+    }
+    
     return;
 }
 
+// SPI Slave 読み込み完了
 void callbackSpiReadSlave( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE bufferHandle, void * context ){
-    pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_WRITE;
+    
+    switch(event)
+    {
+        case DRV_SPI_BUFFER_EVENT_COMPLETE:
+        {
+            // 書き込み完了
+            pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_WRITE;
+            break;
+        }
+        case DRV_SPI_BUFFER_EVENT_ERROR:
+        {
+            pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_READ;
+            break;
+        }
+    }
+    
     return;
 }
 /*** ADD ***/
@@ -133,6 +196,7 @@ void callbackSpiReadSlave( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE buf
 
 /* TODO:  Add any necessary local functions.
 */
+// SPI Master Task
 static void PIC_SPI_Master_Tasks(void)
 {
     switch(pic_spiData.stateMaster)
@@ -144,7 +208,8 @@ static void PIC_SPI_Master_Tasks(void)
         }
         case PIC_SPI_MASTER_STATE_WRITETIMER:
         {
-            pic_spiData.timerHandle = SYS_TMR_ObjectCreate(2, NULL, callbackTimerWrite, SYS_TMR_FLAG_SINGLE);
+            // SlaveのRead関数呼び出しのため1ms待つ
+            pic_spiData.timerHandle = SYS_TMR_ObjectCreate(1, NULL, callbackTimerWrite, SYS_TMR_FLAG_SINGLE);
             if( pic_spiData.timerHandle != SYS_TMR_HANDLE_INVALID ){
                 pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_WRITETIMERWAIT;
             }
@@ -158,6 +223,7 @@ static void PIC_SPI_Master_Tasks(void)
             
             pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_WRITEWAIT;
             
+            // Master が書き込み
             DRV_SPI_BufferAddWrite2(
                     pic_spiData.spiHandleMaster,
                     &pic_spiData.masterWriteData,
@@ -174,6 +240,7 @@ static void PIC_SPI_Master_Tasks(void)
         }
         case PIC_SPI_MASTER_STATE_READTIMER:
         {
+            // SlaveのWrite関数呼び出しのため1ms待つ
             SYS_TMR_ObjectReload(pic_spiData.timerHandle, 1, NULL, callbackTimerRead);
             pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READTIMERWAIT;
             break;
@@ -182,6 +249,7 @@ static void PIC_SPI_Master_Tasks(void)
         {
             pic_spiData.stateMaster = PIC_SPI_MASTER_STATE_READWAIT;
             
+            // Master が読み込み
             DRV_SPI_BufferAddRead2(
                     pic_spiData.spiHandleMaster,
                     &pic_spiData.masterReadData,
@@ -208,6 +276,7 @@ static void PIC_SPI_Master_Tasks(void)
     return;
 }
 
+// SPI Slave Task
 static void PIC_SPI_Slave_Tasks(void)
 {
     switch(pic_spiData.stateSlave)
@@ -221,6 +290,7 @@ static void PIC_SPI_Slave_Tasks(void)
         {
             pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_READWAIT;
             
+            //Slave が読み込み
             DRV_SPI_BufferAddRead2(
                     pic_spiData.spiHandleSlave,
                     &pic_spiData.slaveReadData,
@@ -240,6 +310,7 @@ static void PIC_SPI_Slave_Tasks(void)
             
             pic_spiData.stateSlave = PIC_SPI_SLAVE_STATE_WRITEWAIT;
                 
+            //Slave が書き込み
             DRV_SPI_BufferAddWrite2(
                 pic_spiData.spiHandleSlave,
                 &pic_spiData.slaveWriteData,
@@ -322,12 +393,14 @@ void PIC_SPI_Tasks ( void )
             /*** ADD ***/
             if (pic_spiData.spiHandleMaster == DRV_HANDLE_INVALID)
             {
+                // Master Open
                 pic_spiData.spiHandleMaster = DRV_SPI_Open( DRV_SPI_INDEX_0, DRV_IO_INTENT_READWRITE | DRV_IO_INTENT_NONBLOCKING );
                 appInitialized &= ( DRV_HANDLE_INVALID != pic_spiData.spiHandleMaster );
             }
        
             if (pic_spiData.spiHandleSlave == DRV_HANDLE_INVALID)
             {
+                // Slave Open
                 pic_spiData.spiHandleSlave = DRV_SPI_Open( DRV_SPI_INDEX_1, DRV_IO_INTENT_READWRITE | DRV_IO_INTENT_NONBLOCKING );
                 appInitialized &= ( DRV_HANDLE_INVALID != pic_spiData.spiHandleSlave );
             }

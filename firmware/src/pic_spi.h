@@ -95,27 +95,29 @@ typedef enum
 } PIC_SPI_STATES;
 
 /*** ADD ***/
+// SPI MASTER 状態
 typedef enum{
-    PIC_SPI_MASTER_STATE_INIT=0,
-    PIC_SPI_MASTER_STATE_WRITETIMER,
-    PIC_SPI_MASTER_STATE_WRITETIMERWAIT,
-    PIC_SPI_MASTER_STATE_WRITE,
-    PIC_SPI_MASTER_STATE_WRITEWAIT,
-    PIC_SPI_MASTER_STATE_READTIMER,
-    PIC_SPI_MASTER_STATE_READTIMERWAIT,
-    PIC_SPI_MASTER_STATE_READ,
-    PIC_SPI_MASTER_STATE_READWAIT,
-    PIC_SPI_MASTER_STATE_FINISH,
+    PIC_SPI_MASTER_STATE_INIT=0,                // 初期
+    PIC_SPI_MASTER_STATE_WRITETIMER,            // 書き込みタイマー
+    PIC_SPI_MASTER_STATE_WRITETIMERWAIT,        // 書き込みタイムアウト待ち
+    PIC_SPI_MASTER_STATE_WRITE,                 // 書き込み
+    PIC_SPI_MASTER_STATE_WRITEWAIT,             // 書き込み待ち
+    PIC_SPI_MASTER_STATE_READTIMER,             // 読み込みタイマー
+    PIC_SPI_MASTER_STATE_READTIMERWAIT,         // 読み込みタイムアウト待ち
+    PIC_SPI_MASTER_STATE_READ,                  // 読み込み
+    PIC_SPI_MASTER_STATE_READWAIT,              // 読み込み待ち
+    PIC_SPI_MASTER_STATE_FINISH,                // 完了
 } PIC_SPI_MASTER_STATES;
 
+// SPI SLAVE 状態
 typedef enum
 {
-    PIC_SPI_SLAVE_STATE_INIT=0,
-    PIC_SPI_SLAVE_STATE_READ,
-    PIC_SPI_SLAVE_STATE_READWAIT,
-    PIC_SPI_SLAVE_STATE_WRITE,
-    PIC_SPI_SLAVE_STATE_WRITEWAIT,
-    PIC_SPI_SLAVE_STATE_FINISH,
+    PIC_SPI_SLAVE_STATE_INIT=0,                 // 初期
+    PIC_SPI_SLAVE_STATE_READ,                   // 読み込み
+    PIC_SPI_SLAVE_STATE_READWAIT,               // 読み込み待ち
+    PIC_SPI_SLAVE_STATE_WRITE,                  // 書き込み
+    PIC_SPI_SLAVE_STATE_WRITEWAIT,              // 書き込み待ち
+    PIC_SPI_SLAVE_STATE_FINISH,                 // 完了
 } PIC_SPI_SLAVE_STATES;
 /*** ADD ***/
 
@@ -139,21 +141,21 @@ typedef struct
 
     /* TODO: Define any additional data used by the application. */
     /*** ADD ***/
-    PIC_SPI_MASTER_STATES stateMaster;
-    PIC_SPI_SLAVE_STATES stateSlave;
+    PIC_SPI_MASTER_STATES stateMaster;                          // SPI Master 状態
+    PIC_SPI_SLAVE_STATES stateSlave;                            // SPI Slave 状態
     
-    DRV_HANDLE spiHandleMaster;
-    DRV_HANDLE spiHandleSlave;
+    DRV_HANDLE spiHandleMaster;                                 // SPI Master ハンドル
+    DRV_HANDLE spiHandleSlave;                                  // SPI Slave ハンドル
     
-    DRV_SPI_BUFFER_HANDLE spiBufferHandleMaster;
-    DRV_SPI_BUFFER_HANDLE spiBufferHandleSlave;
+    DRV_SPI_BUFFER_HANDLE spiBufferHandleMaster;                // SPI Master バッファハンドル
+    DRV_SPI_BUFFER_HANDLE spiBufferHandleSlave;                 // SPI Slave バッファハンドル
     
-    SYS_TMR_HANDLE timerHandle;
+    SYS_TMR_HANDLE timerHandle;                                 // タイマーハンドル
     
-    uint8_t masterWriteData;
-    uint8_t masterReadData;
-    uint8_t slaveWriteData;
-    uint8_t slaveReadData;
+    uint8_t masterWriteData;                                    // SPI Master 書き込みデータ
+    uint8_t masterReadData;                                     // SPI Master 読み込みデータ
+    uint8_t slaveWriteData;                                     // SPI Slave 書き込みデータ
+    uint8_t slaveReadData;                                      // SPI Slave 読み込みデータ
     /*** ADD ***/
 } PIC_SPI_DATA;
 
