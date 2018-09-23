@@ -196,6 +196,7 @@ void callbackSpiReadSlave( DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE buf
 
 /* TODO:  Add any necessary local functions.
 */
+/*** ADD ***/
 // SPI Master Task
 static void PIC_SPI_Master_Tasks(void)
 {
@@ -332,6 +333,8 @@ static void PIC_SPI_Slave_Tasks(void)
     }
     return;
 }
+/*** ADD ***/
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Initialization and State Machine Functions
