@@ -94,6 +94,30 @@ typedef enum
 
 } PIC_SPI_STATES;
 
+/*** ADD ***/
+typedef enum{
+    PIC_SPI_MASTER_STATE_INIT=0,
+    PIC_SPI_MASTER_STATE_WRITETIMER,
+    PIC_SPI_MASTER_STATE_WRITETIMERWAIT,
+    PIC_SPI_MASTER_STATE_WRITE,
+    PIC_SPI_MASTER_STATE_WRITEWAIT,
+    PIC_SPI_MASTER_STATE_READTIMER,
+    PIC_SPI_MASTER_STATE_READTIMERWAIT,
+    PIC_SPI_MASTER_STATE_READ,
+    PIC_SPI_MASTER_STATE_READWAIT,
+    PIC_SPI_MASTER_STATE_FINISH,
+} PIC_SPI_MASTER_STATES;
+
+typedef enum
+{
+    PIC_SPI_SLAVE_STATE_INIT=0,
+    PIC_SPI_SLAVE_STATE_READ,
+    PIC_SPI_SLAVE_STATE_READWAIT,
+    PIC_SPI_SLAVE_STATE_WRITE,
+    PIC_SPI_SLAVE_STATE_WRITEWAIT,
+    PIC_SPI_SLAVE_STATE_FINISH,
+} PIC_SPI_SLAVE_STATES;
+/*** ADD ***/
 
 // *****************************************************************************
 /* Application Data
@@ -114,7 +138,23 @@ typedef struct
     PIC_SPI_STATES state;
 
     /* TODO: Define any additional data used by the application. */
-
+    /*** ADD ***/
+    PIC_SPI_MASTER_STATES stateMaster;
+    PIC_SPI_SLAVE_STATES stateSlave;
+    
+    DRV_HANDLE spiHandleMaster;
+    DRV_HANDLE spiHandleSlave;
+    
+    DRV_SPI_BUFFER_HANDLE spiBufferHandleMaster;
+    DRV_SPI_BUFFER_HANDLE spiBufferHandleSlave;
+    
+    SYS_TMR_HANDLE timerHandle;
+    
+    uint8_t masterWriteData;
+    uint8_t masterReadData;
+    uint8_t slaveWriteData;
+    uint8_t slaveReadData;
+    /*** ADD ***/
 } PIC_SPI_DATA;
 
 
